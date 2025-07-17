@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request
-from weather import main as get_weather
+from .weather import main as get_weather
+import os
 
-app = Flask(__name__)
-byCoordinates = False
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "../templates"))
+
+byCoordinatesFlag = False
 
 
 @app.route('/', methods =['GET', 'POST'])
@@ -20,7 +22,7 @@ def index():
 
 
 @app.route('/get_coordinates',  methods =['GET', 'POST'])
-def byCoordinates():
+def handle_coordinates():
      if request.method == 'POST':
         data = None
         lat = float(request.form['latitude'])
