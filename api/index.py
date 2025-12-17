@@ -2,14 +2,20 @@ from flask import Flask, render_template, request
 import sys
 import os
 
-# Add parent directory to path to import weather module
+# Get paths
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
-from src.weather import main as get_weather
+# Import weather module
+try:
+    from src.weather import main as get_weather
+except ImportError as e:
+    # Create a dummy function if import fails
+    def get_weather(*args, **kwargs):
+        raise ValueError(f"Failed to import weather module: {e}")
 
-# Get absolute path to templates directory
+# Setup Flask app
 template_dir = os.path.join(parent_dir, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 
@@ -24,9 +30,7 @@ def index():
             if city and state and country:
                 data = get_weather(city, state, country)
         except Exception as e:
-            # Log error but still render template
             print(f"Error fetching weather: {e}")
-            pass
     return render_template('index.html', data=data)
 
 
@@ -42,8 +46,5 @@ def handle_coordinates():
             print(f"Error fetching weather by coordinates: {e}")
             return render_template('index.html', data=None)
 
-
-# Vercel serverless function handler
-# Expose the Flask app for Vercel
-handler = app
-
+# Vercel Python runtime automatically detects the Flask app
+# The 'app' variable is used as the WSGI application
